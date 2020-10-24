@@ -87,11 +87,83 @@ class aqiCalculator:
 		return(aqi)
 
 
+class airNowRecord:
+	def __init__(self, parameterName, aqi, reportingArea, valid):
+		self.validData = valid
+		self.parameterName = parameterName
+		self.aqi = aqi
+		self.reportingArea = reportingArea
+		
+class purpleAirRecord:
+	def __init__(self, label, iD, parentId, temp_f, humidity, pm2_5_cf_1, lat, lon, valid ):
+		self.label = label
+		self.id = iD
+		self.parentId = parentId
+		self.temp_f = temp_f
+		self.humidity = humidity
+		self.pm2_5_cf_1 = pm2_5_cf_1
+		self.lat = lat
+		self.lon = lon
+		self.validData = valid 		
 
 
+class purpleAirApi:
+	def __init__(self):
+		self.baseUrl = "https://www.purpleair.com/json"
+	
+	def getData(self, stationID=None):
+		results =[]
 		
+		urlExtension =""
+		if stationID != None:
+			urlExtension = ("?show=%s" % (stationID))
+		target_url =  ( self.baseUrl + urlExtension) 
+		params =[]
+		res = requests.get(target_url, params, verify=True)
+		if res.status_code == 200:
+			recordList = res.json()
+			for record in recordList['results']:
+				
+				if  record.has_key('Lat') and record.has_key('Lon'):
+					paRecord = purpleAirRecord(record['Label'], record['ID'], None, None, None, None, record['Lat'], record['Lon'],True)
+					if record.has_key('ParentID'):
+						paRecord.parentId = record['ParentID']
+					if record.has_key('pm2_5_cf_1'):
+						paRecord.pm2_5_cf_1 = record['pm2_5_cf_1']
+					if record.has_key('temp_f'):
+						paRecord.temp_f = record['temp_f']
+					if record.has_key('humidity'):
+						paRecord.humidity = record['humidity']
+					
+					results.append(paRecord)
+
+
+		else:
+			indigo.server.log('Purple Air API Failed')
+			paRecord = purpleAirRecord(None, None, None, None, None, None, None, None, False)
+			results.append(paRecord)
+			
+		return(results)
+
+
+class airNowApi:
+	def __init__(self):
+		self.target_url =  "https://www.airnowapi.org/aq/observation/latLong/current/?"		
+		self.APIkey = "B2CF15FF-7D10-4963-A662-604CA6CAFD98"
 		
-		
+	def getData(self,location):
+		params ={'distance':'1000', 'format':'json', 'latitude':str(location.lat), 'longitude': str(location.lon),"API_KEY":self.APIkey}
+		res = requests.get(self.target_url, params, verify=True)
+		if res.status_code == 200:
+			record = res.json()
+			recordDict = record[0]
+			results = airNowRecord(recordDict['ParameterName'],recordDict['AQI'], recordDict['ReportingArea'], True)
+		else:
+			indigo.server.log('AirNow API Failed')
+			results = airNowRecord(None, None, None, False)
+		return(results)
+
+	
 ################################################################################
 class Plugin(indigo.PluginBase):
 ########################################
@@ -101,6 +173,8 @@ class Plugin(indigo.PluginBase):
 		self.sampleInterval = 5
 		self.numNearest = 5
 		self.aqiCalculator = aqiCalculator()
+		self.paAPI = purpleAirApi()
+		self.anAPI = airNowApi()
 			
 	
 	def startup(self):
@@ -273,50 +347,54 @@ class Plugin(indigo.PluginBase):
 
 
 
-	def getData(self, stationID=None):
-		urlExtension =""
-		if stationID != None:
-			urlExtension = ("?show=%s" % (stationID))
-		target_url =  ("https://www.purpleair.com/json" + urlExtension) 
-		params =[]
-		res = requests.get(target_url, params, verify=True)
-		if res.status_code == 200:
-			return(res.json())
-
-		else:
-			indigo.server.log('Purple Air API Failed')
-			return(None)
+#	def getData(self, stationID=None):
+#		urlExtension =""
+#		if stationID != None:
+#			urlExtension = ("?show=%s" % (stationID))
+#		target_url =  ("https://www.purpleair.com/json" + urlExtension) 
+#		params =[]
+#		res = requests.get(target_url, params, verify=True)
+#		if res.status_code == 200:
+#			return(res.json())
+#
+#		else:
+#			indigo.server.log('Purple Air API Failed')
+#			return(None)
 	
-	def getAirnowData(self,location):
-		target_url =  "https://www.airnowapi.org/aq/observation/latLong/current/?" 
-		params ={'distance':'1000', 'format':'json', 'latitude':str(location.lat), 'longitude': str(location.lon),"API_KEY":"B2CF15FF-7D10-4963-A662-604CA6CAFD98"}
-		res = requests.get(target_url, params, verify=True)
-		rtn = res.json()
-		return(rtn)
+#	def getAirnowData(self,location):
+#		target_url =  "https://www.airnowapi.org/aq/observation/latLong/current/?" 
+#		params ={'distance':'1000', 'format':'json', 'latitude':str(location.lat), 'longitude': str(location.lon),"API_KEY":"B2CF15FF-7D10-4963-A662-604CA6CAFD98"}
+#		res = requests.get(target_url, params, verify=True)
+#		rtn = res.json()
+#		return(rtn)
 
 	
 	def findNearest(self, sensorList, numNearest, loc, onlyParents):
-		closest = []			
-		for i in range(numNearest):
-			closest.append({"Name":None, "ID":None, "Distance":1000000000})
-		#closest = [{"Name":None, "Distance":1000000000}, {"Name":None, "Distance":1000000000}, {"Name":None, "Distance":1000000000}]
-		for record in sensorList['results']:
-			if not (record.has_key('ParentID') and onlyParents == True):
-				if record.has_key('Lat') and record.has_key('Lon'):
-					
-					newDis = loc.calculateDistance (record['Lat'], record['Lon'])
+		closest = []
+		self.sli("sensorList Length: " + str(len(sensorList)))			
+		if len(sensorList) > 0:
+			if sensorList[0].validData == True:
+				for i in range(numNearest):
+					closest.append({"Name":None, "ID":None, "Distance":1000000000})
+			#closest = [{"Name":None, "Distance":1000000000}, {"Name":None, "Distance":1000000000}, {"Name":None, "Distance":1000000000}]
+			
+				for record in sensorList:
+					if not (record.parentId != None and onlyParents == True):
+		#				if record.has_key('Lat') and record.has_key('Lon'):
+							
+							newDis = loc.calculateDistance (record.lat, record.lon)
 
-					for i in range(numNearest):
-						if newDis <= closest[i]["Distance"]:
-							if closest[i]['Name'] == record['Label']:
-								
-								break
-							else:	
-								newRec = {"Name":record['Label'], "ID": record["ID"], "Distance":newDis}
-								closest.insert(i, newRec)
-								closest.pop(numNearest)
-								
-								break
+							for i in range(numNearest):
+								if newDis <= closest[i]["Distance"]:
+									if closest[i]['Name'] == record.label:
+										
+										break
+									else:	
+										newRec = {"Name":record.label, "ID": record.id, "Distance":newDis}
+										closest.insert(i, newRec)
+										closest.pop(numNearest)
+										
+										break
 		return(closest)
 		
 	
@@ -324,12 +402,13 @@ class Plugin(indigo.PluginBase):
 		self.logger.info("Creating NearestList")
 		if dev.deviceTypeId == "virtualSensor":
 			loc = llPair(dev.pluginProps["latDegrees"], dev.pluginProps["longDegrees"]) 
-			sensorList = self.getData(None)
-			nearestList = self.findNearest(sensorList, num, loc, True)
+			paRecordList = self.paAPI.getData(None)
+			nearestList = self.findNearest(paRecordList, num, loc, True)
 		elif dev.deviceTypeId == "sensor":
 			nearestList = self.validateSensor(dev)
 
-		dev.updateStateOnServer("sensorList", json.dumps(nearestList))
+		if len(nearestList) > 0:
+			dev.updateStateOnServer("sensorList", json.dumps(nearestList))
 		return(nearestList)
 	
 	def purgeNearestList(self,devId):
@@ -345,21 +424,23 @@ class Plugin(indigo.PluginBase):
 		nearestList = []
 		if dev.pluginProps["nearestSensor"] == True:
 			loc = llPair(self.pluginPrefs["latDegrees"], self.pluginPrefs["longDegrees"]) 
-			sensorList = self.getData(None)			
-			nearestList = self.findNearest(sensorList, 1, loc, True)
+			paRecordList = self.getData(None)			
+			nearestList = self.findNearest(paRecordList, 1, loc, True)
 			
 		
 		elif dev.pluginProps['idOrName'] == 'ID':
-			sensorList = self.getData(dev.pluginProps["stationID"])
-			self.logger.info("Sensor by ID returned " + str(len(sensorList['results'])))
-			nearestList.append({"Name":sensorList['results'][0]['Label'], "ID": dev.pluginProps["stationID"], "Distance":0})
+			paRecordList = self.getData(dev.pluginProps["stationID"])
+			self.logger.info("Sensor by ID returned " + str(len(paRecordList['results'])))
+			if paRecordList[0].validData == True:
+				nearestList.append({"Name":paRecordList[0].label, "ID": dev.pluginProps["stationID"], "Distance":0})
 					
 		elif dev.pluginProps['idOrName'] == 'Name':
-			sensorList = self.getData(None)
-			for record in sensorList['results']:
-				if record['Label'] == dev.pluginProps['stationName']:
-					nearestList.append({"Name":record['Label'], "ID": record["ID"], "Distance":0})
-					break			
+			paRecordList = self.getData(None)
+			if paRecordList[0].validData == True:
+				for record in paRecordList:
+					if record.label == dev.pluginProps['stationName']:
+						nearestList.append({"Name":record.label, "ID": record.id, "Distance":0})
+						break			
 		if len(nearestList) != 1 :
 			self.logger.info("Sensor: " + dev.name + "incorrectly configured")
 			self.logger.info("ID ="+str(dev.pluginProps["stationID"] ))
@@ -387,64 +468,70 @@ class Plugin(indigo.PluginBase):
 ##################################
 	def updateVirtualSensor(self, dev):
 		sensorList = self.getNearestList(dev, self.numNearest)
-		dev.updateStateOnServer("sensorAveTemp", self.aveAndClosest(sensorList, 'temp_f').ave, decimalPlaces = 1)
-		dev.updateStateOnServer("sensorAveHumidity", self.aveAndClosest(sensorList, 'humidity').ave, decimalPlaces = 1)
-		pm25cf1ave = self.aveAndClosest(sensorList, 'pm2_5_cf_1').ave
-		dev.updateStateOnServer("sensorAvePm25", pm25cf1ave, decimalPlaces = 1)
-		pm25AQI = self.aqiCalculator.aqiCalc(pm25cf1ave)
-		dev.updateStateOnServer("sensorAvePm25AQI", pm25AQI, decimalPlaces = 1)
-		dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(pm25AQI) )
+		if len(sensorList) != 0: 
+			dev.updateStateOnServer("sensorAveTemp", self.aveAndClosest(sensorList, 'temp_f').ave, decimalPlaces = 1)
+			dev.updateStateOnServer("sensorAveHumidity", self.aveAndClosest(sensorList, 'humidity').ave, decimalPlaces = 1)
+			pm25cf1ave = self.aveAndClosest(sensorList, 'pm2_5_cf_1').ave
+			dev.updateStateOnServer("sensorAvePm25", pm25cf1ave, decimalPlaces = 1)
+			pm25AQI = self.aqiCalculator.aqiCalc(pm25cf1ave)
+			dev.updateStateOnServer("sensorAvePm25AQI", pm25AQI, decimalPlaces = 1)
+			dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(pm25AQI) )
 
 
 			
 	def updateSensor(self, dev):
 		sensorList = self.getNearestList(dev, 1)
-		dev.updateStateOnServer("sensorAveTemp", self.aveAndClosest(sensorList, 'temp_f').ave, decimalPlaces = 1)
-		dev.updateStateOnServer("sensorAveHumidity", self.aveAndClosest(sensorList, 'humidity').ave, decimalPlaces = 1)
-		pm25cf1ave = self.aveAndClosest(sensorList, 'pm2_5_cf_1').ave
-		dev.updateStateOnServer("sensorAvePm25", pm25cf1ave, decimalPlaces = 1)		
-		pm25AQI = self.aqiCalculator.aqiCalc(pm25cf1ave)
-		dev.updateStateOnServer("sensorAvePm25AQI", pm25AQI, decimalPlaces = 1)
-		dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(pm25AQI) )
+		if len(sensorList) != 0: 
+			dev.updateStateOnServer("sensorAveTemp", self.aveAndClosest(sensorList, 'temp_f').ave, decimalPlaces = 1)
+			dev.updateStateOnServer("sensorAveHumidity", self.aveAndClosest(sensorList, 'humidity').ave, decimalPlaces = 1)
+			pm25cf1ave = self.aveAndClosest(sensorList, 'pm2_5_cf_1').ave
+			dev.updateStateOnServer("sensorAvePm25", pm25cf1ave, decimalPlaces = 1)		
+			pm25AQI = self.aqiCalculator.aqiCalc(pm25cf1ave)
+			dev.updateStateOnServer("sensorAvePm25AQI", pm25AQI, decimalPlaces = 1)
+			dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(pm25AQI) )
 
 
 	
 	def updateAirnowSensor(self, dev):
 		loc = llPair(dev.pluginProps["latDegrees"], dev.pluginProps["longDegrees"]) 
-		sensorData =self.getAirnowData(loc) 
-		aqi = None
-		for sensor in sensorData:
-			if sensor['ParameterName'] == 'PM2.5':
-				aqi = sensor['AQI']			
-		dev.updateStateOnServer("AQI", aqi, decimalPlaces = 1)
-		reportingArea = sensorData[0]['ReportingArea']			
-		dev.updateStateOnServer("reportingArea", reportingArea, decimalPlaces = 1)
-		dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(aqi) )
+		anRecord =self.anAPI.getData(loc) 
+		if anRecord.validData == True:
+			dev.updateStateOnServer("AQI", anRecord.aqi, decimalPlaces = 1)		
+			dev.updateStateOnServer("reportingArea", anRecord.reportingArea, decimalPlaces = 1)
+			dev.updateStateOnServer("aqiHazardCode", self.convertAQI2AlertLevel(anRecord.aqi) )
 				
 	def aveAndClosest(self, sensorList, tag):
 		values = []
 		for sensor in sensorList:
 			#self.logger.info(sensor['Name'])
-			result = self.getData(sensor["ID"])
+			result = self.paAPI.getData(sensor["ID"])
 			#self.logger.info(len(result['results']))
 			if tag == 'pm2_5_cf_1':
-				if len(result['results']) == 2:
-					if result['results'][0].has_key('pm2_5_cf_1'):
-						pm2_50 = result['results'][0]['pm2_5_cf_1']
-						if result['results'][1].has_key('pm2_5_cf_1'):
-							pm2_51 = result['results'][1]['pm2_5_cf_1']
+				if len(result) == 2:					
+					if result[0].pm2_5_cf_1 != None:
+						pm2_50 = result[0].pm2_5_cf_1 
+						if result[1].pm2_5_cf_1 != None:							
+							pm2_51 = result[0].pm2_5_cf_1
 							avepm2_5_cf_1 = (float(pm2_50) + float(pm2_51))/2.0
-							RH = float(result['results'][0]['humidity'])
+							RH = float(result[0].humidity)
 							###########							
 							# Correction calculation to bring PurpleAir sensor in line with AirNow EPA sensor valuses:
 							# PM2.5 corrected= 0.52*[PA_cf1(avgAB)] - 0.085*RH +5.71
 							#  https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
 							values.append(.52*avepm2_5_cf_1 - .085*RH + 5.71)
-			else:
-				for dict in result['results']:
-					if dict.has_key(tag):
-						values.append(float(dict[tag]))			
-		results = virtParam(round(sum(values)/len(values),1), round(values[0],1))
+			elif tag == 'humidity':
+				for paRecord in result:
+					if paRecord.humidity != None:
+						values.append(float(paRecord.humidity))	
+			elif tag == 'temp_f':
+				for paRecord in result:
+					if paRecord.temp_f != None:
+						values.append(float(paRecord.temp_f))	
+						
+		if len(values) !=0:									
+			results = virtParam(round(sum(values)/len(values),1), round(values[0],1))
+		else:
+			results = virtParam(0,0)
 		self.sleep(1)
 		return(results)
 
