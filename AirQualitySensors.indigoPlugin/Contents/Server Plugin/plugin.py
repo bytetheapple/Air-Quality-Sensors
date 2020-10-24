@@ -154,13 +154,15 @@ class airNowApi:
 	def getData(self,location):
 		params ={'distance':'1000', 'format':'json', 'latitude':str(location.lat), 'longitude': str(location.lon),"API_KEY":self.APIkey}
 		res = requests.get(self.target_url, params, verify=True)
+		
+		results = airNowRecord(None, None, None, False)
 		if res.status_code == 200:
-			record = res.json()
-			recordDict = record[0]
-			results = airNowRecord(recordDict['ParameterName'],recordDict['AQI'], recordDict['ReportingArea'], True)
+			record = res.json()			
+			for recordDict in record:
+				if recordDict['ParameterName'] == "PM2.5":
+					results = airNowRecord(recordDict['ParameterName'],recordDict['AQI'], recordDict['ReportingArea'], True)
 		else:
 			indigo.server.log('AirNow API Failed')
-			results = airNowRecord(None, None, None, False)
 		return(results)
 
 	
