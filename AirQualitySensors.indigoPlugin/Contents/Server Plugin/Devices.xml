@@ -1,0 +1,289 @@
+<?xml version="1.0"?>
+
+<Devices>
+		<Device type="custom" id="sensor">
+					<Name>Purple Air Sensor</Name>
+					<ConfigUI>					
+						<Field id="instructions0" type="label" fontSize="regular" fontColor="black">
+									<Label>Specify a sensor or use nearest sensor?</Label>
+							</Field>
+
+						<Field type="checkbox" id="nearestSensor" defaultValue="true">
+							<Label>Use Nearest Sensor:</Label>
+							
+						</Field>
+						<Field id="idOrName" type="menu"  defaultValue="ID" visibleBindingId="nearestSensor" visibleBindingValue="false">
+							<Label> Select ID or Name </Label>
+							<List>
+									<Option value="ID">Use the Station's ID</Option>
+									<Option value="Name">Use the Station's Name</Option>
+									
+							</List>
+						</Field>
+						<Field id="stationID" type="textfield" visibleBindingId="idOrName" visibleBindingValue="ID" >
+									<Label>ID Number:</Label>
+						</Field>
+						
+								
+						<Field id="stationName" type="textfield" visibleBindingId="idOrName" visibleBindingValue="Name" >
+							<Label>Station Name:</Label>
+						</Field>
+						
+						<Field id="instructions1" type="label" fontSize="small" fontColor="black" alignWithControl="true" visibleBindingId="idOrName" visibleBindingValue="Name">
+								<Label>Make sure to use the EXACT Name (case sensitive)</Label>
+						</Field>
+
+
+						<Field id="instructions2" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+												<Label>
+												-
+												</Label>
+						</Field>
+
+					</ConfigUI>
+					<States>
+						
+						<State id="sensorAveTemp">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>sensorTemp</TriggerLabel>
+							<ControlPageLabel>Sensor Temperature</ControlPageLabel>
+						</State>
+						<State id="sensorAveHumidity">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>sensorHumidity</TriggerLabel>
+							<ControlPageLabel>Sensor Humidity</ControlPageLabel>
+						</State>
+						<State id="sensorAvePm25">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>PM2.5</TriggerLabel>
+							<ControlPageLabel>PM2.5</ControlPageLabel>
+						</State>
+						<State id="sensorAvePm25AQI">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>PM2.5 AQI</TriggerLabel>
+							<ControlPageLabel>PM2.5 AQI</ControlPageLabel>
+						</State>
+						<State id="aqiHazardCode">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Hazard Code</TriggerLabel>
+							<ControlPageLabel>Hazard Code</ControlPageLabel>
+						</State>
+
+						<State id="sensorList">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Sensor List</TriggerLabel>
+							<ControlPageLabel>Sensor List</ControlPageLabel>
+						</State>
+				</States>
+		</Device>
+		
+		<Device type="custom" id="virtualSensor">
+					<Name>Purple Virtual Sensor</Name>
+					<ConfigUI>					
+						
+						<Field type="checkbox" id="nearestSensor" defaultValue="true">
+							<Label>Use your location:</Label>
+							
+						</Field>
+						<Field id="instructions0" type="label" fontSize="regular" fontColor="black" visibleBindingId="nearestSensor" visibleBindingValue="false">
+									<Label>Enter the location you want to use:</Label>
+						</Field>
+						<Field id="latLongFormat" type="menu"  defaultValue="DD" visibleBindingId="nearestSensor" visibleBindingValue="false">
+							<Label>GPS Location Format:</Label>
+							<List>
+									<Option value="DD">Decimal Degrees</Option>
+									<Option value="DMS">Degree Minutes Seconds</Option>
+									<Option value="BLANK"></Option>
+									
+							</List>
+						</Field>
+						<Field id="simpleSeparator1" type="separator" visibleBindingId="nearestSensor" visibleBindingValue="false"/>
+						<Field id="instructions1" type="label" fontSize="regular" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+											<Label>Latitude</Label>
+						</Field>
+						<Field id="latDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+							<Label>Degrees:</Label>
+						</Field>		
+						<Field id="latDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+							<Label>Degrees:</Label>
+						</Field>
+						<Field id="instructions2" type="label" fontSize="small" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+										<Label>(Sepcify Negative Degrees for South)</Label>
+						</Field>
+
+						<Field id="latMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Minutes:</Label>
+						</Field>
+						<Field id="latSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Seconds:</Label>
+						</Field>
+						<Field id="instructions3" type="label" fontSize="regular" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+												<Label>Longitude</Label>
+						</Field>
+						<Field id="longDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+							<Label>Degrees:</Label>
+						</Field>		
+						<Field id="longDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+							<Label>Degrees:</Label>
+						</Field>
+						<Field id="instructions4" type="label" fontSize="small" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+								<Label>(Sepcify Negative Degrees for West)</Label>
+						</Field>
+
+						<Field id="longMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Minutes:</Label>
+						</Field>
+						<Field id="longSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Seconds:</Label>
+						</Field>
+						<Field id="instructions5" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+												<Label>
+												-
+											
+											
+											
+											
+											
+																							
+												
+												-
+												</Label>
+						</Field>
+					</ConfigUI>
+					<States>
+						<State id="sensorAveTemp">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>sensorTemp</TriggerLabel>
+							<ControlPageLabel>Sensor Temperature</ControlPageLabel>
+						</State>
+						<State id="sensorAveHumidity">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>sensorHumidity</TriggerLabel>
+							<ControlPageLabel>Sensor Humidity</ControlPageLabel>
+						</State>
+						<State id="sensorAvePm25">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>PM2.5</TriggerLabel>
+							<ControlPageLabel>PM2.5</ControlPageLabel>
+						</State>
+						<State id="sensorAvePm25AQI">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>PM2.5 AQI</TriggerLabel>
+							<ControlPageLabel>PM2.5 AQI</ControlPageLabel>
+						</State>
+						<State id="aqiHazardCode">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Hazard Code</TriggerLabel>
+							<ControlPageLabel>Hazard Code</ControlPageLabel>
+						</State>
+						<State id="sensorList">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Sensor List</TriggerLabel>
+							<ControlPageLabel>Sensor List</ControlPageLabel>
+						</State>
+					</States>
+		</Device>				
+		<Device type="custom" id="airNowSensor">
+					<Name>AirNow Sensor</Name>
+					<ConfigUI>					
+						
+						<Field type="checkbox" id="nearestSensor" defaultValue="true">
+							<Label>Use your location:</Label>
+							
+						</Field>
+						<Field id="instructions0" type="label" fontSize="regular" fontColor="black" visibleBindingId="nearestSensor" visibleBindingValue="false">
+									<Label>Enter the location you want to use:</Label>
+						</Field>
+						<Field id="latLongFormat" type="menu"  defaultValue="DD" visibleBindingId="nearestSensor" visibleBindingValue="false">
+							<Label>GPS Location Format:</Label>
+							<List>
+									<Option value="DD">Decimal Degrees</Option>
+									<Option value="DMS">Degree Minutes Seconds</Option>
+									<Option value="BLANK"></Option>
+									
+							</List>
+						</Field>
+						<Field id="simpleSeparator1" type="separator" visibleBindingId="nearestSensor" visibleBindingValue="false"/>
+						<Field id="instructions1" type="label" fontSize="regular" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+											<Label>Latitude</Label>
+						</Field>
+
+						<Field id="latDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+							<Label>Degrees:</Label>
+						</Field>		
+						<Field id="latDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+							<Label>Degrees:</Label>
+						</Field>
+						<Field id="instructions2" type="label" fontSize="small" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+										<Label>(Sepcify Negative Degrees for South)</Label>
+						</Field>
+
+						<Field id="latMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Minutes:</Label>
+						</Field>
+						<Field id="latSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Seconds:</Label>
+						</Field>
+						<Field id="instructions3" type="label" fontSize="regular" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+												<Label>Longitude</Label>
+						</Field>
+						<Field id="longDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+							<Label>Degrees:</Label>
+						</Field>		
+						<Field id="longDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+							<Label>Degrees:</Label>
+						</Field>
+						<Field id="instructions4" type="label" fontSize="small" fontColor="black" alignWithControl="true" visibleBindingId="nearestSensor" visibleBindingValue="false">
+										<Label>(Sepcify Negative Degrees for West)</Label>
+							</Field>
+
+						<Field id="longMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Minutes:</Label>
+						</Field>
+						<Field id="longSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+								<Label>Seconds:</Label>
+						</Field>
+						<Field id="instructions5" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+												<Label>
+												-
+											
+											
+											
+											
+											
+																							
+												
+												-
+												</Label>
+						</Field>
+					</ConfigUI>
+					<States>
+					<State id="reportingArea">
+						<ValueType>String</ValueType>
+						<TriggerLabel>Reporting Area</TriggerLabel>
+						<ControlPageLabel>Reporting Area</ControlPageLabel>
+					</State>
+
+						<State id="AQI">
+							<ValueType>Number</ValueType>
+							<TriggerLabel>AQI</TriggerLabel>
+							<ControlPageLabel>AQI</ControlPageLabel>
+						</State>
+						<State id="aqiHazardCode">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Hazard Code</TriggerLabel>
+							<ControlPageLabel>Hazard Code</ControlPageLabel>
+						</State>
+						<State id="sensorList">
+							<ValueType>String</ValueType>
+							<TriggerLabel>Sensor List</TriggerLabel>
+							<ControlPageLabel>Sensor List</ControlPageLabel>
+						</State>
+					</States>
+		</Device>				
+
+
+					
+					
+	
+</Devices>

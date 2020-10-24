@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<SupportURL>http://www.yourdomain.com/plugin/config.html</SupportURL>
+
+
+	<Field id="instructions0" type="label" fontSize="regular" fontColor="black">
+			<Label>Enter your location so that nearby sensors can be found</Label>
+	</Field>
+	<Field id="latLongFormat" type="menu"  defaultValue="DD">
+		<Label>Format of your GPS Location:</Label>
+		<List>
+				<Option value="DD">Decimal Degrees</Option>
+				<Option value="DMS">Degree Minutes Seconds</Option>
+				
+		</List>
+	</Field>
+	<Field id="simpleSeparator1" type="separator"/>
+	<Field id="instructions1" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+		<Label>Latitude</Label>
+	</Field>
+
+	<Field id="latDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+		<Label>Degrees:</Label>
+	</Field>
+	<Field id="latDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+		<Label>Degrees:</Label>
+	</Field>
+	<Field id="instructions2" type="label" fontSize="small" fontColor="black" alignWithControl="true">
+		<Label>(Sepcify Negative Degrees for South)</Label>
+	</Field>
+	<Field id="latMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+		<Label>Minutes:</Label>
+	</Field>
+	<Field id="latSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+		<Label>Seconds:</Label>
+	</Field>
+	<Field id="instructions3" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+		<Label>Longitude</Label>
+	</Field>
+	<Field id="longDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DD" >
+		<Label>Degrees:</Label>
+	</Field>
+	<Field id="longDMSDegrees" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+		<Label>Degrees:</Label>
+	</Field>
+
+	<Field id="instructions4" type="label" fontSize="small" fontColor="black" alignWithControl="true">
+		<Label>(Sepcify Negative Degrees for West)</Label>
+	</Field>
+
+	<Field id="longMinutes" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+			<Label>Minutes:</Label>
+	</Field>
+	<Field id="longSeconds" type="textfield" visibleBindingId="latLongFormat" visibleBindingValue="DMS" >
+			<Label>Seconds:</Label>
+	</Field>
+	<Field id="instructions5" type="label" fontSize="regular" fontColor="black" alignWithControl="true">
+							<Label>
+							-
+							
+							
+							
+							
+							
+							
+							-
+							</Label>
+	</Field>
+
+
+</PluginConfig>
