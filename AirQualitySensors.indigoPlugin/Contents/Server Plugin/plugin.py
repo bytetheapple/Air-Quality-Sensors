@@ -113,7 +113,6 @@ class purpleAirApi:
 	
 	def getData(self, stationID=None):
 		results =[]
-		
 		urlExtension =""
 		if stationID != None:
 			urlExtension = ("?show=%s" % (stationID))
@@ -172,7 +171,7 @@ class Plugin(indigo.PluginBase):
 	def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
 		super(Plugin, self).__init__(pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
 		self.debug = False
-		self.sampleInterval = 5
+		self.sampleInterval = 20
 		self.numNearest = 5
 		self.aqiCalculator = aqiCalculator()
 		self.paAPI = purpleAirApi()
@@ -505,9 +504,7 @@ class Plugin(indigo.PluginBase):
 	def aveAndClosest(self, sensorList, tag):
 		values = []
 		for sensor in sensorList:
-			#self.logger.info(sensor['Name'])
 			result = self.paAPI.getData(sensor["ID"])
-			#self.logger.info(len(result['results']))
 			if tag == 'pm2_5_cf_1':
 				if len(result) == 2:					
 					if result[0].pm2_5_cf_1 != None:
@@ -515,12 +512,14 @@ class Plugin(indigo.PluginBase):
 						if result[1].pm2_5_cf_1 != None:							
 							pm2_51 = result[0].pm2_5_cf_1
 							avepm2_5_cf_1 = (float(pm2_50) + float(pm2_51))/2.0
-							RH = float(result[0].humidity)
-							###########							
-							# Correction calculation to bring PurpleAir sensor in line with AirNow EPA sensor valuses:
-							# PM2.5 corrected= 0.52*[PA_cf1(avgAB)] - 0.085*RH +5.71
-							#  https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
-							values.append(.52*avepm2_5_cf_1 - .085*RH + 5.71)
+							if result[0].humidity != None:
+							
+								RH = float(result[0].humidity)
+								###########							
+								# Correction calculation to bring PurpleAir sensor in line with AirNow EPA sensor valuses:
+								# PM2.5 corrected= 0.52*[PA_cf1(avgAB)] - 0.085*RH +5.71
+								#  https://cfpub.epa.gov/si/si_public_record_report.cfm?dirEntryId=349513&Lab=CEMM&simplesearch=0&showcriteria=2&sortby=pubDate&timstype=&datebeginpublishedpresented=08/25/2018
+								values.append(.52*avepm2_5_cf_1 - .085*RH + 5.71)
 			elif tag == 'humidity':
 				for paRecord in result:
 					if paRecord.humidity != None:
